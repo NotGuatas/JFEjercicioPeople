@@ -11,19 +11,21 @@ namespace JFEjercicioPeople;
 public class JFPersonRepository
 {
     string _dbPath;
-    private SQLiteConnection conn;
+    private SQLiteAsyncConnection conn;
+
 
     public string StatusMessage { get; set; }
 
     // TODO: Add variable for the SQLite connection
 
-    private void Init()
+    private async Task Init()
     {
         if (conn != null)
             return;
 
-        conn = new SQLiteConnection(_dbPath);
-        conn.CreateTable<JFPerson>();
+        conn = new SQLiteAsyncConnection(_dbPath);
+
+        await conn.CreateTableAsync<JFPerson>();
     }
 
     public JFPersonRepository(string dbPath)
@@ -31,13 +33,13 @@ public class JFPersonRepository
         _dbPath = dbPath;
     }
 
-    public void AddNewPerson(string name)
+    public async Task AddNewPerson(string name)
     {
         int result = 0;
         try
         {
             // TODO: Call Init()
-            Init();
+            await Init();
 
             // basic validation to ensure a name was entered
             if (string.IsNullOrEmpty(name))
@@ -45,7 +47,7 @@ public class JFPersonRepository
 
             // TODO: Insert the new person into the database
             // enter this line
-            result = conn.Insert(new JFPerson { Name = name });
+            result = await conn.InsertAsync(new JFPerson { Name = name });
 
             StatusMessage = string.Format("{0} record(s) added (Name: {1})", result, name);
         }
@@ -56,14 +58,12 @@ public class JFPersonRepository
 
     }
 
-    public List<JFPerson> GetAllPeople()
+    public async Task<List<JFPerson>> GetAllPeople()
     {
-        // TODO: Init then retrieve a list of Person objects from the database into a list
         try
         {
-            Init();
-            return conn.Table<JFPerson>().ToList();
-
+            await Init();
+            return await conn.Table<JFPerson>().ToListAsync();
         }
         catch (Exception ex)
         {
